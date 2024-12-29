@@ -1,4 +1,5 @@
 use dep::bignum::{params::BigNumParams, RuntimeBigNum};
+<<<<<<< HEAD
 use crate::bignum_ops::{exp_by_squaring};
 
 
@@ -284,3 +285,79 @@ fn test_verify_sha256_pkcs1v15_2048_exponent_3() {
 
     assert(verify_sha256_pkcs1v15(sha256_hash, signature, 3));
 }
+=======
+
+fn adjust_result<let NumLimbs: u32, let ModBits: u32>(
+    mut num: RuntimeBigNum<NumLimbs, ModBits>, 
+    params: BigNumParams<NumLimbs, ModBits>
+) -> RuntimeBigNum<NumLimbs, ModBits> {
+    let mut result = RuntimeBigNum::new(params);
+    for i in 0..NumLimbs {
+        result.limbs[i] = num.limbs[i];
+    }
+    result
+}
+
+fn karatsuba_multiply<let NumLimbs: u32, let ModBits: u32>(
+    x: RuntimeBigNum<NumLimbs, ModBits>,
+    y: RuntimeBigNum<NumLimbs, ModBits>,
+    params: BigNumParams<NumLimbs, ModBits>
+) -> RuntimeBigNum<NumLimbs, ModBits> {
+    let mut result = RuntimeBigNum::new(params);
+    for i in 0..NumLimbs {
+        for j in 0..NumLimbs {
+            let partial_product = x.limbs[i] * y.limbs[j];
+            result.limbs[i + j] += partial_product;
+        }
+    }
+    adjust_result(result, params)
+}
+
+pub fn exponentiation_by_squaring<let NumLimbs: u32, let ModBits: u32>(
+    base: RuntimeBigNum<NumLimbs, ModBits>,
+    exponent: u32,
+    params: BigNumParams<NumLimbs, ModBits>
+) -> RuntimeBigNum<NumLimbs, ModBits> {
+    let mut result = RuntimeBigNum::new(params);
+    result.limbs[0] = 1;
+
+    let mut base = adjust_result(base, params);
+    let mut exp = exponent;
+
+    for _ in 0..32 {
+        if exp % 2 == 1 {
+            result = karatsuba_multiply(result, base, params);
+        }
+
+        base = karatsuba_multiply(base, base, params);
+        exp = exp / 2;
+
+        if exp == 0 {
+            base = RuntimeBigNum::new(params);
+        }
+    }
+
+    result
+}
+
+pub fn verify_sha256_pkcs1v15_karatsuba_optimized<let NumLimbs: u32, let ModBits: u32>(
+    msg_hash: [u8; 32],
+    sig: RuntimeBigNum<NumLimbs, ModBits>,
+    exponent: u32,
+    params: BigNumParams<NumLimbs, ModBits>
+) -> bool {
+    let exponentiated = exponentiation_by_squaring(sig, exponent, params);
+    let padded_hash: [u8; 256] = exponentiated.to_le_bytes();
+    compare_signature_sha256(padded_hash, msg_hash)
+}
+
+fn compare_signature_sha256<let N: u32>(padded_sha256_hash: [u8; N], msg_hash: [u8; 32]) -> bool {
+    let mut is_valid = true;
+    for i in 0..32 {
+        if padded_sha256_hash[31 - i] != msg_hash[i] {
+            is_valid = false;
+        }
+    }
+    is_valid
+}
+>>>>>>> e5038a5 (min test)

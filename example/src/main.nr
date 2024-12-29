@@ -1,4 +1,5 @@
 use dep::bignum::{params::BigNumParams, RuntimeBigNum};
+<<<<<<< HEAD
 use dep::rsa::{rsa::verify_sha256_pkcs1v15, types::RBN2048};
 
 // Examples of the signature limbs, modulus, and redc params can be generated via
@@ -92,3 +93,24 @@ fn test_main() {
 
     main(hash, signature_limbs, modulus_limbs, redc_limbs);
 }
+=======
+
+fn main(
+    sig_limbs: [Field; 18],
+    mod_limbs: [Field; 18],
+    redc_limbs: [Field; 18]
+) {
+    // Just create the params and bignum
+    let params = BigNumParams::new(false, mod_limbs, redc_limbs);
+    let _signature = RuntimeBigNum::from_array(params, sig_limbs);
+}
+
+#[test]
+fn test_basic() {
+    let sig_limbs = [1; 18];
+    let mod_limbs = [1; 18];
+    let redc_limbs = [1; 18];
+    
+    main(sig_limbs, mod_limbs, redc_limbs);
+}
+>>>>>>> e5038a5 (min test)
