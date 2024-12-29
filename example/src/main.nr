@@ -1,13 +1,10 @@
 use dep::bignum::{params::BigNumParams, RuntimeBigNum};
-<<<<<<< HEAD
-use dep::rsa::{rsa::verify_sha256_pkcs1v15, types::RBN2048};
+use dep::rsa::{rsa::verify_sha256_pkcs1v15_karatsuba as verify_sha256_pkcs1v15, types::RBN2048};
 
 // Examples of the signature limbs, modulus, and redc params can be generated via
 // ../../signature_gen/main.rs.
 // Note: technically, the `signature` could've been passed into `main` directly,
 // for a much cleaner interface.
-// The reason we chose this more verbose approach here, was to reduce the amount of
-// data to generate for the Prover.toml file.
 fn main(
     hash: [u8; 32],
     signature_limbs: [Field; 18],
@@ -20,6 +17,7 @@ fn main(
 
     let signature: RBN2048 = RuntimeBigNum::from_array(params, signature_limbs);
 
+    // Add params as the fourth argument
     assert(verify_sha256_pkcs1v15(hash, signature, 65537));
 }
 
@@ -93,24 +91,3 @@ fn test_main() {
 
     main(hash, signature_limbs, modulus_limbs, redc_limbs);
 }
-=======
-
-fn main(
-    sig_limbs: [Field; 18],
-    mod_limbs: [Field; 18],
-    redc_limbs: [Field; 18]
-) {
-    // Just create the params and bignum
-    let params = BigNumParams::new(false, mod_limbs, redc_limbs);
-    let _signature = RuntimeBigNum::from_array(params, sig_limbs);
-}
-
-#[test]
-fn test_basic() {
-    let sig_limbs = [1; 18];
-    let mod_limbs = [1; 18];
-    let redc_limbs = [1; 18];
-    
-    main(sig_limbs, mod_limbs, redc_limbs);
-}
->>>>>>> e5038a5 (min test)
